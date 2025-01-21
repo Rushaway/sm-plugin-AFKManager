@@ -2,6 +2,7 @@
 #include <sdktools>
 #include <cstrike>
 #include <multicolors>
+#include <AFKManager>
 
 #undef REQUIRE_PLUGIN
 #tryinclude <zombiereloaded>
@@ -14,6 +15,9 @@
 
 #define AFK_CHECK_INTERVAL 5.0
 #define TAG "{green}[AFK]"
+
+GlobalForward g_hForward_StatusOK;
+GlobalForward g_hForward_StatusNotOK;
 
 bool g_bIsAdmin[MAXPLAYERS + 1];
 bool g_Players_bEnabled[MAXPLAYERS + 1];
@@ -49,7 +53,7 @@ public Plugin myinfo =
 	name = "Good AFK Manager",
 	author = "BotoX, .Rushaway, maxime1907",
 	description = "A good AFK manager?",
-	version = "1.3.10",
+	version = AFKManager_VERSION,
 	url = ""
 };
 
@@ -124,6 +128,10 @@ public void OnPluginStart()
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	CreateNative("GetClientIdleTime", Native_GetClientIdleTime);
+
+	g_hForward_StatusOK = CreateGlobalForward("AutoRecorder_OnPluginOK", ET_Ignore);
+	g_hForward_StatusNotOK = CreateGlobalForward("AutoRecorder_OnPluginNotOK", ET_Ignore);
+
 	RegPluginLibrary("AFKManager");
 
 	return APLRes_Success;
@@ -131,9 +139,25 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnAllPluginsLoaded()
 {
+	SendForward_Available();
+
 	g_bEntWatch = LibraryExists("EntWatch");
 	VerifyNatives();
 }
+
+public void OnPluginPauseChange(bool pause)
+{
+	if (pause)
+		SendForward_NotAvailable();
+	else
+		SendForward_Available();
+}
+
+public void OnPluginEnd()
+{
+	SendForward_NotAvailable();
+}
+
 public void OnLibraryRemoved(const char[] name)
 {
 	if (strcmp(name, "EntWatch", false) == 0)
@@ -142,6 +166,7 @@ public void OnLibraryRemoved(const char[] name)
 		VerifyNative_EntWatch();
 	}
 }
+
 public void OnLibraryAdded(const char[] name)
 {
 	if (strcmp(name, "EntWatch", false) == 0)
@@ -574,3 +599,15 @@ public void Events_OnEventStopped()
 	g_bEventLoaded = false;
 }
 #endif
+
+stock void SendForward_Available()
+{
+	Call_StartForward(g_hForward_StatusOK);
+	Call_Finish();
+}
+
+stock void SendForward_NotAvailable()
+{
+	Call_StartForward(g_hForward_StatusNotOK);
+	Call_Finish();
+}

@@ -3,6 +3,33 @@
 #endif
 #define _AFKManager_Included
 
+#define AFKManager_V_MAJOR   1
+#define AFKManager_V_MINOR   4
+#define AFKManager_V_PATCH   0
+
+#define AFKManager_VERSION   "1.4.0"
+
+/**
+ * Called when AFKManager plugin becomes available
+ *
+ * @noreturn
+ */
+forward void AFKManager_OnPluginOK();
+
+/**
+ * Called when AFKManager plugin becomes unavailable
+ *
+ * @noreturn
+ */
+forward void AFKManager_OnPluginNotOK();
+
+/**
+ * Gets the idle time of a client in seconds
+ *
+ * @param client        Client index
+ * @return             Number of seconds client has been idle, 0 if not being tracked, -1 on error
+ * @error              If client is invalid, not in game, or is a bot
+ */
 native int GetClientIdleTime(int client);
 
 public SharedPlugin __pl_AFKManager =
